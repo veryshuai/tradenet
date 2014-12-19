@@ -7,13 +7,15 @@ if __name__ == "__main__":
         converts to numeric values, and saves"""
 
     # LOAD DATA
-    dat    = pd.read_csv('network_data.csv', delimiter='|', quotechar='"', error_bad_lines=False, encoding='iso-8859-1')
-    dat.to_pickle('network_data.pickle')
+    # dat    = pd.read_csv('network_data.csv', delimiter='|', quotechar='"', error_bad_lines=False, encoding='iso-8859-1')
+    # dat.to_pickle('network_data.pickle')
     dat = pd.read_pickle('network_data.pickle')
 
     #CREATE FIRM ID
+    dat['code_origin'][pd.isnull(dat['code_origin']) == 1] = 0 # replace NaNs with zero
+    dat['code_origin_str'] = dat['code_origin'].apply(lambda i: "%03d" % int(i)) # make leading zeros
     dat['STR_ID'] = dat['name_exp'].str.strip().str[:7]\
-            + dat['code_origin'].str.strip().str[:3]
+            + dat['code_origin_str'].str.strip().str[:3]
             #+ dat['imp_city'].str.strip().str[:3]\
             #+ dat['imp_address'].str.strip().str[:2]
     dat['STR_ID'] = dat['STR_ID'].str.upper()
@@ -45,13 +47,13 @@ if __name__ == "__main__":
     dat     = pd.merge(dat, grouped, on='id', suffixes=('_x','_y') )# merge into original data
 
     #CREATE NUM ID TRANSLATION LISTS
-    dat[['STR_ID', 'index_x']].groupby('index_x').first().to_csv('importer_id.csv')
-    dat[['id', 'index_y']].groupby('index_y').first().to_csv('exporter_id.csv')
+    dat[['STR_ID', 'index_x']].groupby('index_x').first().to_csv('importer_id.csv', encoding='utf-8')
+    dat[['id', 'index_y']].groupby('index_y').first().to_csv('exporter_id.csv', encoding='utf-8')
 
     #CREATE REDUCED DATA
     red_dat         = dat[['index_y','index_x','YEAR','hs10','x_fob','code_origin_x','STR_ID', 'id', 'name_exp','name_imp']]
     red_dat.columns = ['EXP_ID','IMP_ID','YEAR','hs10','x_fob','code_origin','exp_alf','imp_id_orig', 'exp_name', 'imp_name']
 
     #OUTPUT TO CSV
-    red_dat.to_csv('graph_trans.csv')
+    red_dat.to_csv('graph_trans.csv', encoding='utf-8')
 
