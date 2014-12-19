@@ -7,8 +7,8 @@ if __name__ == "__main__":
         converts to numeric values, and saves"""
 
     # LOAD DATA
-    # dat    = pd.read_csv('network_data.csv', delimiter='|', quotechar='"', error_bad_lines=False, encoding='iso-8859-1')
-    # dat.to_pickle('network_data.pickle')
+    dat    = pd.read_csv('network_data.csv', delimiter='|', quotechar='"', error_bad_lines=False, encoding='iso-8859-1')
+    dat.to_pickle('network_data.pickle')
     dat = pd.read_pickle('network_data.pickle')
 
     #CREATE FIRM ID
@@ -33,12 +33,12 @@ if __name__ == "__main__":
     #YEAR FILTER
     dat = dat[dat['YEAR'] == 2006]
     
-    #REPLACE STRINGS WITH NUMBERS - IMPORTER
+    #REPLACE STRINGS WITH NUMBERS - EXPORTER
     grouped = dat.groupby('STR_ID')['code_origin'].first() # unique row for each firm
     grouped = pd.DataFrame(grouped).reset_index().reset_index() # create unique numerical index for each firm
     dat     = pd.merge(dat, grouped, on='STR_ID') # merge into original data
 
-    #REPLACE STRINGS WITH NUMBERS - EXPORTER
+    #REPLACE STRINGS WITH NUMBERS - IMPORTER
     #grouped = dat.groupby('exp_id')['dest_code'].first() # unique row for each firm
     grouped = dat.drop_duplicates(cols='id') # unique row for each firm
     grouped = grouped.reset_index().drop('level_0', 1).reset_index() # create unique numerical index for each firm

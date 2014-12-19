@@ -42,10 +42,10 @@ def main():
             .groupby(['EXP_ID'])['hs10'].transform(error_proof_hs)
     dat['hs_dest'] = dat.reset_index()\
             .groupby(['IMP_ID'])['hs10'].transform(error_proof_hs)
-    dat['dest'] = dat.reset_index()\
-           .groupby(['EXP_ID'])['exp_alf'].transform(error_proof_hs)
+    dat['source'] = dat.reset_index()\
+           .groupby(['IMP_ID'])['code_origin'].transform(error_proof_hs)
     #dat['imp_name'] = dat.reset_index().groupby(['EXP_ID'], axis=1).apply(epm)
-    max_imp = dat.reset_index().groupby(['EXP_ID']).apply(epm)
+    #max_imp = dat.reset_index().groupby(['EXP_ID']).apply(epm)
     dat = dat.drop_duplicates(['EXP_ID','IMP_ID'])
     dat = dat.reset_index().set_index(['EXP_ID','IMP_ID'])\
             .drop('index',1).drop('Unnamed: 0', 1)
@@ -53,6 +53,6 @@ def main():
     dat['hs10'] = hs 
     dat.reset_index().set_index('EXP_ID')
     dat.to_csv('graph.csv')
-    max_imp.to_pickle('max_imp.pickle')
+    #max_imp.to_pickle('max_imp.pickle')
 
 main()

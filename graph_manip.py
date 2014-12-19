@@ -5,7 +5,7 @@ import numpy as np
 
 #load data
 dat = pd.read_csv('graph.csv',delimiter=',')
-val = dat[['x_fob', 'dest_alf', 'hs10', 'hs_source', 'hs_dest', 'code_origin', 'imp_name']]
+val = dat[['x_fob', 'exp_alf', 'hs10', 'hs_source', 'hs_dest', 'code_origin', 'imp_name', 'exp_name']]
 dat = dat[['EXP_ID','IMP_ID']]
 
 # make low values for nodes

@@ -9,5 +9,8 @@ use /home/veryshuai/Documents/research/tradenet/data/colombia_imports/DIAN_M/out
 *keep the variables I use
 keep name_imp id name_exp code_origin hs10 x_fob yr_month
 
+*format id's correctly
+format %12.0f id
+
 *write to csv
 outsheet using network_data.csv, delim("|") noq replace
