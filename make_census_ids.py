@@ -52,7 +52,7 @@ if __name__ == "__main__":
 
     #CREATE REDUCED DATA
     red_dat         = dat[['index_y','index_x','YEAR','hs10','x_fob','code_origin_x','STR_ID', 'id', 'name_exp','name_imp']]
-    red_dat.columns = ['EXP_ID','IMP_ID','YEAR','hs10','x_fob','code_origin','exp_alf','imp_id_orig', 'exp_name', 'imp_name']
+    red_dat.columns = ['IMP_ID','EXP_ID','YEAR','hs10','x_fob','code_origin','exp_alf','imp_id_orig', 'exp_name', 'imp_name']
 
     #OUTPUT TO CSV
     red_dat.to_csv('graph_trans.csv', encoding='utf-8')

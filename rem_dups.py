@@ -22,7 +22,6 @@ def error_proof_hs(x):
         return 0
 
 def epm(x):
-    # not sure what this function does, would need to be updated if used
     try:
         first = x['index'].iat[0]
         max_ind = x['x_fob'].idxmax()
@@ -44,7 +43,7 @@ def main():
     dat['hs_dest'] = dat.reset_index()\
             .groupby(['IMP_ID'])['hs10'].transform(error_proof_hs)
     dat['dest'] = dat.reset_index()\
-           .groupby(['EXP_ID'])['code_origin'].transform(error_proof_hs)
+           .groupby(['EXP_ID'])['exp_alf'].transform(error_proof_hs)
     #dat['imp_name'] = dat.reset_index().groupby(['EXP_ID'], axis=1).apply(epm)
     max_imp = dat.reset_index().groupby(['EXP_ID']).apply(epm)
     dat = dat.drop_duplicates(['EXP_ID','IMP_ID'])
