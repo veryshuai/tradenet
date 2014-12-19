@@ -19,8 +19,7 @@ def error_proof_hs(x):
     except Exception as e:
         print(e)
         print('WARNING: Problem in hs mode finding error_proof_hs')
-        return 0
-
+        return 0 
 def epm(x):
     try:
         first = x['index'].iat[0]

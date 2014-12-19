@@ -30,7 +30,7 @@ These instructions are for how to run the program from raw data.  If you would l
 4. Use python to run graph_manip.py.  This creates the edge list and attribute files igraph_small.csv and vals_small.csv used in the bipartite projection program.
 
 5. A row must be added to the top of vals_small.csv as follows:
-ids,val,dest_alf,hs10,hs_source,hs_dest,dest,imp_name
+ids,val,exp_alf,hs10,hs_source,hs_dest,source,imp_name,exp_name
 
 6. Use python to run bipartite_projection_plots.py, which will use igraph_small.csv and vals_small.csv.  You should be able to use the attached files if you wish.  This file generates the plot files, and generates some statistics which are printed into standard output.
 

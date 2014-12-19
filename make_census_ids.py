@@ -7,15 +7,18 @@ if __name__ == "__main__":
         converts to numeric values, and saves"""
 
     # LOAD DATA
-    dat    = pd.read_csv('network_data.csv', delimiter='|', quotechar='"', error_bad_lines=False, encoding='iso-8859-1')
-    dat.to_pickle('network_data.pickle')
+    #dat = pd.read_csv('network_data.csv', delimiter='|', quotechar='"', error_bad_lines=False, encoding='iso-8859-1')
+    #dat.to_pickle('network_data.pickle')
     dat = pd.read_pickle('network_data.pickle')
+    dat = dat.iloc[1:-2,:] # the very last observation is all nulls, no idea why
 
     #CREATE FIRM ID
-    dat['code_origin'][pd.isnull(dat['code_origin']) == 1] = 0 # replace NaNs with zero
-    dat['code_origin_str'] = dat['code_origin'].apply(lambda i: "%03d" % int(i)) # make leading zeros
+
+    # First some data manipulation
+    dat['code_origin'][pd.isnull(dat['code_origin']) == 1] = 'ERR' # replace NaNs with zero
+    dat['name_exp'] = dat['name_exp'].str.replace('"','') # remove quotations
     dat['STR_ID'] = dat['name_exp'].str.strip().str[:7]\
-            + dat['code_origin_str'].str.strip().str[:3]
+            + dat['code_origin'].str.strip().str[:3]
             #+ dat['imp_city'].str.strip().str[:3]\
             #+ dat['imp_address'].str.strip().str[:2]
     dat['STR_ID'] = dat['STR_ID'].str.upper()
@@ -31,7 +34,7 @@ if __name__ == "__main__":
     dat['YEAR'] = dat['yr_month'].apply(lambda x: int(x / 100))
 
     #YEAR FILTER
-    dat = dat[dat['YEAR'] == 2006]
+    dat = dat[dat['YEAR'] == 1996]
     
     #REPLACE STRINGS WITH NUMBERS - EXPORTER
     grouped = dat.groupby('STR_ID')['code_origin'].first() # unique row for each firm
