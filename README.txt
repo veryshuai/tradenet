@@ -1,10 +1,11 @@
 ####################################################################
-# COLOMBIA TRADE NETWORK PLOTS AND STATS                           #
+# COLOMBIA IMPORT NETWORK PLOTS AND STATS                          #
 ####################################################################
 
 
 ######### MANIFEST ########
 README.txt
+read_data.do
 network_data_sample.csv
 make_census_ids.py
 rem_dups.py
@@ -20,7 +21,7 @@ igraph
 ######## HOW TO RUN #######
 These instructions are for how to run the program from raw data.  If you would like to use the attached data, skip to step 6.
 
-1. First, data needs to be put into the format of the file network_data_sample.csv.  I did this using the stata files prepared by Jim.
+1. First, data needs to be put into the format of the file network_data_sample.csv and labeled "network_data.csv".  I did this using the stata files prepared by Jim and the file "read_data.do".
 
 2. Use python to run make_census_ids.py.  This creates census style ids for importers using country names, firm names, and addresses.  The output of this file is called graph_trans.csv.
 
