@@ -9,8 +9,8 @@ val = dat[['x_fob', 'exp_alf', 'hs10', 'hs_source', 'hs_dest', 'code_origin', 'i
 dat = dat[['EXP_ID','IMP_ID']]
 
 # make low values for nodes
-dat['EXP_ID'] = pd.factorize(dat['EXP_ID'])[0]
 dat['IMP_ID'] = pd.factorize(dat['IMP_ID'])[0]
+dat['EXP_ID'] = pd.factorize(dat['EXP_ID'])[0]
 
 # give exporters aad importers unique ids
 dat['IMP_ID'] = dat['IMP_ID'] + dat['EXP_ID'].max() + 1

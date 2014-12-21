@@ -7,8 +7,8 @@ if __name__ == "__main__":
         converts to numeric values, and saves"""
 
     # LOAD DATA
-    #dat = pd.read_csv('network_data.csv', delimiter='|', quotechar='"', error_bad_lines=False, encoding='iso-8859-1')
-    #dat.to_pickle('network_data.pickle')
+    dat = pd.read_csv('network_data.csv', delimiter='|', quotechar='"', error_bad_lines=False, encoding='iso-8859-1')
+    dat.to_pickle('network_data.pickle')
     dat = pd.read_pickle('network_data.pickle')
     dat = dat.iloc[1:-2,:] # the very last observation is all nulls, no idea why
 
@@ -34,7 +34,7 @@ if __name__ == "__main__":
     dat['YEAR'] = dat['yr_month'].apply(lambda x: int(x / 100))
 
     #YEAR FILTER
-    dat = dat[dat['YEAR'] == 1996]
+    dat = dat[dat['YEAR'] == 2003]
     
     #REPLACE STRINGS WITH NUMBERS - EXPORTER
     grouped = dat.groupby('STR_ID')['code_origin'].first() # unique row for each firm

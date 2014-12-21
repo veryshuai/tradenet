@@ -15,8 +15,8 @@ wt_x=[0.8 0.12 0.05 0.02 0.01];
 cb0=0.2;  cb1=2;
 cs0=0.2;  cs1=2;
 %network effects
-gamB= 0.8;
-gamS= 0.8;
+gamB= 1;
+gamS= 1;
 
 %profit function parameters for buyer (g) and seller-buyer pair (f)
 g=.95;
@@ -25,7 +25,7 @@ f= 0;
 
 %discounting rate and exogenous destruction rate
 rho=0.1;
-delta=1.2;
+delta=2;
 
 %match function parameters
 alp=6;
@@ -34,7 +34,7 @@ alp=6;
 %initial guess of equilibrium objects thetab, thetas
 thetas_new=0.01; 
 thetab_new=0.01;
-wt_old=0.8;
+wt_old=0.3; % dampening parameter for updating theta, [0,1]
 
 thetas=0;  thetab=0;
 

@@ -94,9 +94,9 @@ def make_projection(graph, atts):
     graph.vs[source_tup[0]]['source'] = source_tup[1]
     
     # SIZES FROM graph.csv
-    size = 60551 
-    edge_size = 118730 
-    big_size = 79193 
+    size = 51633 
+    edge_size = 95821 
+    big_size = 67359 
     sub = big_size - size
 
     # MAKE THE TWO TYPES (SELLER AND BUYER)
@@ -181,7 +181,7 @@ def plot_comp(comp, fname, layout_name):
         # reduce size
         biggest = []
         for x in comp.vs:
-            if x['val'] > 4e4:
+            if x['val'] > 1e4:
                 biggest.append(x.index)
         print(len(biggest))
 
