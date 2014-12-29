@@ -24,11 +24,11 @@ if __name__ == "__main__":
     dat['STR_ID'] = dat['STR_ID'].str.upper()
 
     #DROP NO NAMES, AND NON-INFORMATIVE NAMES
-    dat = dat[dat['name_exp'] != '']
-    dat = dat[dat['name_exp'] != 'TO ORDER']
-    dat = dat[dat['name_exp'].str.strip() != 'TO THE ORDER OF']
-    dat = dat[dat['name_exp'].str.strip() != 'TO THE ORDER']
-    dat = dat[dat['name_exp'] != 'A LA ORDEN']
+    dat = dat[dat['name_imp'] != '']
+    dat = dat[dat['name_imp'] != 'TO ORDER']
+    dat = dat[dat['name_imp'].str.strip() != 'TO THE ORDER OF']
+    dat = dat[dat['name_imp'].str.strip() != 'TO THE ORDER']
+    dat = dat[dat['name_imp'] != 'A LA ORDEN']
 
     #CREATE YEAR
     dat['YEAR'] = dat['yr_month'].apply(lambda x: int(x / 100))

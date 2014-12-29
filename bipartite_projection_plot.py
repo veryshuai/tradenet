@@ -19,15 +19,14 @@ def load_dat():
     source = pd.read_csv('vals_small.csv')['source']
     imp_name = pd.read_csv('vals_small.csv')['imp_name']
     exp_name = pd.read_csv('vals_small.csv')['exp_name']
-    exp_name.value_counts().to_csv('test.csv')
     atts = {'vals': vals,'hs': hs,'exp_alf': exp_alf,
             'hss': hss,'source': source,
-            'imp_name': imp_name}
+            'imp_name': imp_name, 'exp_name': exp_name}
     return graph, atts
 
 def what_buyers(es, coun):
     '''takes an igraph edgesequence, and returns list
-    of buyers from the US'''
+    of sellers who source ANY shipment from coun'''
 
     #find sellers
     sell_to_us = []
@@ -41,6 +40,20 @@ def what_buyers(es, coun):
 
     return res
 
+def most_frequent(dat_vec):
+    '''returns the most frequent value from a data
+    vector'''
+
+    vcounts = dat_vec['val'].value_counts()
+
+    if pd.notnull(dat_vec.val.iat[0]): #avoids an error
+        most_frequent_val = vcounts.index.values[0]
+    else:
+        print 'WARNING: Encountered null in most frequent val calc'
+        most_frequent_val = 'NULL'
+
+    return most_frequent_val
+
 def source_hs(es,lab):
     '''takes an igraph edgesequence, and returns tuple 
     of lists of vertices and hs codes to the US'''
@@ -52,13 +65,13 @@ def source_hs(es,lab):
         h = obj[lab]
         raw_tups.append((i, h))
 
-    #unique list
-    uniq = set(raw_tups)
-    utups = list(uniq)
+    #get most frequent
+    tup_dat = pd.DataFrame(raw_tups, columns=['firm_id','val'])
+    uniq_dat = tup_dat.groupby('firm_id').apply(most_frequent)
 
-    #get tuple of lists rather than list of tuples
-    ids = [x[0] for x in utups]
-    hss = [x[1] for x in utups]
+    #get lists rather than a list of tuples
+    ids = uniq_dat.index.values
+    hss = uniq_dat.values
 
     return (ids, hss)
 
@@ -72,11 +85,12 @@ def make_projection(graph, atts):
     graph.es['hss'] = list(atts['hss'])
     graph.es['source'] = list(atts['source'])
     graph.es['imp_name'] = list(atts['imp_name'])
+    graph.es['exp_name'] = list(atts['exp_name'])
 
     # PREPARE VERTEX ATTRIBUTES
     # The strength member function sums all of the edge values
     graph.vs['val'] = graph.strength(graph.vs, weights='val')
-    # Get list of exporters who sell to the US
+    # Get list of importers who source from the US
     us_list = what_buyers(graph.es, 'USA')
     graph.vs['US'] = 0
     graph.vs[us_list]['US'] = 1
@@ -92,11 +106,23 @@ def make_projection(graph, atts):
     source_tup = source_hs(graph.es,'source')
     graph.vs['source'] = 0
     graph.vs[source_tup[0]]['source'] = source_tup[1]
+    # # Get most frequent source name
+    # source_tup = source_hs(graph.es,'exp_name')
+    # graph.vs['exp_name'] = 0
+    # graph.vs[source_tup[0]]['exp_name'] = source_tup[1]
+    # Get most valuable source 
+    max_exp = pd.read_pickle('max_exp.pickle')
+    graph.vs['exp_name'] = max_exp
+    # Get most frequent dest name
+    source_tup = source_hs(graph.es,'imp_name')
+    graph.vs['imp_name'] = 0
+    graph.vs[source_tup[0]]['imp_name'] = source_tup[1]
     
     # SIZES FROM graph.csv
-    size = 51633 
-    edge_size = 95821 
-    big_size = 67359 
+    size = 244 
+    edge_size = 334 
+    big_size = 451 
+
     sub = big_size - size
 
     # MAKE THE TWO TYPES (SELLER AND BUYER)
@@ -108,9 +134,6 @@ def make_projection(graph, atts):
     proj1.vs['val'] = graph.vs[size+1:big_size]['val']
     proj1.vs['val'] = graph.vs[size+1:big_size]['val']
 
-    # Get most valuable source 
-    # max_imp = pd.read_pickle('max_imp.pickle')
-    # proj1.vs['imp_name'] = max_imp
 
     # WRITE AND READ
     proj1.write_pickle('proj1.pickle')
@@ -127,9 +150,10 @@ def get_comps(proj1):
     lcc = clust.giant()
     giantval = sum(lcc.vs['val'])
 
-    print("".join(['Average path length: ', str(proj1.diameter())]))
+    print("".join(['Diameter: ', str(proj1.diameter())]))
     print("".join(['Average path length: ', str(proj1.average_path_length())]))
     print("".join(['Seller count: ', str(proj1.vcount())]))
+    print("".join(['Percent sellers in giant component: ', str(lcc.vcount()/float(proj1.vcount()))]))
     print("".join(['Total value, FOB dollars: ', str(totval)]))
     print("".join(['Percent value in giant component: ',
                     str(giantval / float(totval))]))
@@ -181,7 +205,8 @@ def plot_comp(comp, fname, layout_name):
         # reduce size
         biggest = []
         for x in comp.vs:
-            if x['val'] > 1e4:
+            #if x['val'] > 8e4:
+            if x['val'] > 0:
                 biggest.append(x.index)
         print(len(biggest))
 
@@ -190,20 +215,26 @@ def plot_comp(comp, fname, layout_name):
         clust = comp_new.clusters()
         lcc = clust.giant()
         random.seed(myseed)
-        layout = lcc.layout(layout_name, root=0)
+        layout = lcc.layout(layout_name) #root=0
 
-        for coloring in ['USA', 'CHN', 'hs', 'hs_val', 'sect', 'sect_val', 'source', 'name', 'community']:
+        for coloring in ['USA', 'CHN', 'hs', 'hs_val', 'sect', 'sect_val', 'source', 'exp_name', 'imp_name', 'community']:
 
             print(coloring)
 
             if coloring == 'USA':
+                lcc.vs['label'] = '*' 
                 color = []
                 for x in lcc.vs['US']:
                     if x == 1:
                         color.append('red')
                     else:
-                        color.append('black')
-                lcc.vs['color'] = color
+                        color.append('grey')
+                lcc.vs['label'] = '*' # shape of label
+                lcc.vs['color'] = 'white' # remove vertices
+                lcc.vs['size'] = [0] * size # make vertices tiny
+                lcc.es['color']  = 'white' # remove edges
+                lcc.vs['label_color'] = color
+                lcc.vs['label_size']  = 15
 
             if coloring == 'CHN':
                 color = []
@@ -211,8 +242,13 @@ def plot_comp(comp, fname, layout_name):
                     if x == 1:
                         color.append('red')
                     else:
-                        color.append('black')
-                lcc.vs['color'] = color
+                        color.append('grey')
+                lcc.vs['label'] = '*' # shape of label
+                lcc.vs['color'] = 'white' # remove vertices
+                lcc.vs['size'] = [0] * size # make vertices tiny
+                lcc.es['color']  = 'white' # remove edges
+                lcc.vs['label_color'] = color
+                lcc.vs['label_size']  = 15 
 
             if coloring == 'hs_val':
                 trunk  = [int(x / 100000000) for x in lcc.vs['hs_source']]
@@ -240,7 +276,8 @@ def plot_comp(comp, fname, layout_name):
                 lcc.es['width']  = [0] * edge_size
 
             if coloring == 'hs':
-                trunk  = [int(x / 100000000) for x in lcc.vs['hs_source']]
+                #trunk  = [int(x / 100000000) for x in lcc.vs['hs_source']]
+                trunk  = [int(x / 1000000) - 8500 for x in lcc.vs['hs_source']]
                 lcc.vs['label'] = trunk
                 color = []
                 for x in trunk:
@@ -267,7 +304,7 @@ def plot_comp(comp, fname, layout_name):
             if coloring == 'sect':
                 trunk  = [int(x / 100000000) for x in lcc.vs['hs_source']]
                 color = []
-                lab = []
+                lab = [] 
                 for x in trunk:
                     if x <= 24:
                         color.append('green')
@@ -312,19 +349,17 @@ def plot_comp(comp, fname, layout_name):
                         color.append('red')
                     elif x == 'CHN':
                         color.append('green')
-                    elif x == 'VEN':
+                    elif x == 'BRA':
                         color.append('blue')
-                    elif hash(x) % 6 == 0:
+                    elif hash(x) % 5 == 0:
                         color.append('yellow')
-                    elif hash(x) % 6 == 1:
-                        color.append('black')
-                    elif hash(x) % 6 == 2:
+                    elif hash(x) % 5 == 1:
                         color.append('grey')
-                    elif hash(x) % 6 == 3:
+                    elif hash(x) % 5 == 2:
                         color.append('purple')
-                    elif hash(x) % 6 == 4:
+                    elif hash(x) % 5 == 3:
                         color.append('orange')
-                    elif hash(x) % 6 == 5:
+                    elif hash(x) % 5 == 4:
                         color.append('pink')
                 lcc.vs['color'] = 'white'
                 lcc.vs['size'] = [0] * size
@@ -332,7 +367,29 @@ def plot_comp(comp, fname, layout_name):
                 lcc.vs['label_size']  = [math.log(x) for x in lcc.vs.degree()]
                 lcc.es['width']  = [0] * edge_size
 
-            # if coloring == 'name':
+            if coloring == 'exp_name':
+                for x in lcc.vs['source']:
+                    if hash(x) % 8 == 0:
+                        color.append('yellow')
+                    if hash(x) % 8 == 1:
+                        color.append('red')
+                    if hash(x) % 8 == 2:
+                        color.append('green')
+                    if hash(x) % 8 == 3:
+                        color.append('blue')
+                    if hash(x) % 8 == 4:
+                        color.append('orange')
+                    if hash(x) % 8 == 5:
+                        color.append('black')
+                    if hash(x) % 8 == 6:
+                        color.append('purple')
+                    if hash(x) % 8 == 7:
+                        color.append('pink')
+                trunk  = [x[:12] for x in lcc.vs['exp_name']]
+                lcc.vs['label'] = trunk
+                lcc.vs['label_size']  = [max(math.log(x / 5e3),0) for x in lcc.vs['val']]
+
+            #if coloring == 'imp_name':
             #     for x in lcc.vs['source']:
             #         if hash(x) % 8 == 0:
             #             color.append('yellow')
@@ -352,13 +409,14 @@ def plot_comp(comp, fname, layout_name):
             #             color.append('pink')
             #     trunk  = [x[:12] for x in lcc.vs['imp_name']]
             #     lcc.vs['label'] = trunk
-            #     lcc.vs['label_size']  = [math.log(x / 1e5) for x in lcc.vs['val']]
+            #     lcc.vs['label_size']  = [max(math.log(x / 5e3),0) for x in lcc.vs['val']]
 
             if coloring == 'community':
                 lcc.vs['size']  = [math.log(x) for x in lcc.vs.degree()]
                 lcc.vs['label'] = [''] * size
                 lcc = lcc.community_walktrap().as_clustering()
 
+            
             ig.plot(lcc, 'results/' + fname + coloring + '.pdf',
                     layout = layout)
 
@@ -419,14 +477,16 @@ def spath(lcc):
 def eigcent(lcc):
     '''statistics related to the eigenvector centrality of largest component'''
 
-    #sp = lcc.shortest_paths_dijkstra(source=range(1000))
-    cent = lcc.eigenvector_centrality()
-    idxmax = cent.index(max(cent))
-    print(lcc.vs[idxmax])
-    appearances = defaultdict(int)
-    twodig = [int(x / 100000000) for x in lcc.vs[lcc.neighbors(2213)]['hs_source']]
-    for curr in twodig:
-        appearances[curr] += 1
+    cent = lcc.eigenvector_centrality() 
+    cent_sort = sorted(cent) # sort by centrality, small to high
+    print 'Ten most important importers (eig cent.) in reverse order:'
+    for k in range(-10,0):
+        idxmax = cent.index(cent_sort[k]) # get 10 most central nodes
+        print(lcc.vs[idxmax]['imp_name'])
+    #appearances = defaultdict(int)
+    #twodig = [int(x / 100000000) for x in lcc.vs[lcc.neighbors(2213)]['hs_source']]
+    # for curr in twodig:
+    #     appearances[curr] += 1
 
     return 0
 
@@ -445,21 +505,25 @@ if __name__ == "__main__":
         # GET COMPONENTS AND VAL INFO
         clust, lcc, totval, giantval = get_comps(proj1)
         
-        # # PRINT COMPONENT SIZE COUNTS
-        # csize(clust)
+        # PRINT COMPONENT SIZE COUNTS
+        csize(clust)
 
-        # # SHORTEST PATH STUFF
-        # spath(lcc)
+        # SHORTEST PATH STUFF
+        spath(lcc)
 
-        # # CENTRALITY STUFF
-        # eigcent(lcc)
+        # CENTRALITY STUFF
+        eigcent(lcc)
 
-        # # GET PATH LENGTH HISTOGRAM
-        # pl_hist(proj1)
+        # GET PATH LENGTH HISTOGRAM
+        pl_hist(proj1)
 
-        # # GET NODE BY NODE BETWEENNESS CENTRALITY HISTOGRAM
-        # bc_hist(proj1, 'expexp')
-        # bc_hist(proj2, 'impimp')
+        # PRINT GLOBAL CLUSTERING COEFFICIENT OF GRAPH
+        print 'Global clustering coefficient of largest component:' 
+        print lcc.transitivity_undirected()
+
+        # GET NODE BY NODE BETWEENNESS CENTRALITY HISTOGRAM
+        bc_hist(proj1, 'expexp')
+        bc_hist(proj2, 'impimp')
 
         # PLOT LARGEST COMPONENT
         # plot_comp(lcc, 'largest_component_drl.png', 'drl')

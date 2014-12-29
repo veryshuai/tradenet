@@ -130,14 +130,26 @@ def sz(dat):
 
     return hred_imp_dist_by_exp_sz, hred_exp_dist_by_imp_sz
 
+def year_imp_by_country(dat, countries):
+    # writes out the annual imports from a list of countries
+
+    write_data = dat.groupby(['YEAR','code_origin'])['x_fob'].sum()
+    write_data.to_csv('results/annual_imports_by_country.csv')
+    
+
 if __name__=='__main__':
     """ Let's get it started in here """
 
     # READ DATA
-    dat = pd.read_csv('/home/veryshuai/Documents/research/tradenet/manipulation/aea2015/graph_full.csv')
+    dat = pd.read_csv('graph_full.csv')
+
+    # ANNUAL IMPORTS BY COUNTRY 
+    year_imp_by_country(dat, ['CHN','USA','VEN'])
     
     # ELIMINATE DUPLICATES BY YEAR
-    dat = dat.groupby(['EXP_ID','IMP_ID','YEAR']).first().reset_index()
+    # Note, I added code origin, but it should be
+    # constant within imp_id, so shouldn't make a difference 
+    dat = dat.groupby(['EXP_ID','IMP_ID','YEAR','code_origin']).first().reset_index()
 
     # COLLAPSE
     impcol = collapse('IMP_ID', dat)
@@ -159,15 +171,15 @@ if __name__=='__main__':
     imp_hist = gen_hist(impcol, 'IMP_ID')
 
     # OUTPUT
-    exp_tmat.to_csv('results\exporter_client_count_trans.csv')
-    imp_tmat.to_csv('results\importer_client_count_trans.csv')
-    exp_treg.to_csv('results\export_trans_stata_data.csv')
-    imp_treg.to_csv('results\import_trans_stata_data.csv')
-    exp_fr.to_csv('results\export_form_dest_rate.csv')
-    imp_fr.to_csv('results\import_form_dest_rate.csv')
-    exp_hist.to_csv('results\exporter_client_count_hist_2007.csv')
-    imp_hist.to_csv('results\importer_client_count_hist_2007.csv')
-    expcol.to_csv('results\export_val_stata_data.csv')
-    impcol.to_csv('results\import_val_stata_data.csv')
-    hred_imp_dist_by_exp_sz.to_csv('results\import_client_dist_by_exporter_size.csv')
-    hred_exp_dist_by_imp_sz.to_csv('results\export_client_dist_by_importer_size.csv')
+    exp_tmat.to_csv('results/exporter_client_count_trans.csv')
+    imp_tmat.to_csv('results/importer_client_count_trans.csv')
+    exp_treg.to_csv('results/export_trans_stata_data.csv')
+    imp_treg.to_csv('results/import_trans_stata_data.csv')
+    exp_fr.to_csv('results/export_form_dest_rate.csv')
+    imp_fr.to_csv('results/import_form_dest_rate.csv')
+    exp_hist.to_csv('results/exporter_client_count_hist_2007.csv')
+    imp_hist.to_csv('results/importer_client_count_hist_2007.csv')
+    expcol.to_csv('results/export_val_stata_data.csv')
+    impcol.to_csv('results/import_val_stata_data.csv')
+    hred_imp_dist_by_exp_sz.to_csv('results/import_client_dist_by_exporter_size.csv')
+    hred_exp_dist_by_imp_sz.to_csv('results/export_client_dist_by_importer_size.csv')

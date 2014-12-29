@@ -19,5 +19,9 @@ keep name_imp id name_exp code_origin hs10 x_fob yr_month
 *format id's correctly
 format %12.0f id
 
+* OPTIONAL DROP OBSERVATIONS
+drop if hs10 >= 8529000000 | hs10 < 8516000000
+drop if code_origin != "CHN"
+
 *write to csv
 outsheet using network_data.csv, delim("|") noq replace
