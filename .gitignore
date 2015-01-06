@@ -4,3 +4,6 @@
 *.asv
 results/
 *.zip
+*.png
+*.txt
+*.log
